@@ -60,3 +60,31 @@ exports.updateLeaveRequest = async (req, res) => {
         res.status(500).json({ message: 'Failed to update leave request', error: error.message });
     }
 };
+
+
+// Delete Leave Request (non-managers only, own requests only)
+exports.deleteLeaveRequest = async (req, res) => {
+    const { id } = req.params;
+
+    // Make sure req.user is defined
+    if (!req.user) {
+        return res.status(401).json({ error: "Unauthorized. No user found." });
+    }
+
+    // Disallow managers from deleting
+    if (req.user.role === 'manager') {
+        return res.status(403).json({ error: "Managers are not allowed to delete leave requests." });
+    }
+
+    try {
+        const deleted = await LeaveRequest.findByIdAndDelete(id);
+        if (!deleted) {
+            return res.status(404).json({ error: "Leave request not found." });
+        }
+        res.status(200).json({ message: "Leave request deleted successfully." });
+    } catch (error) {
+        console.error("Delete error:", error);
+        res.status(500).json({ error: "Failed to delete leave request." });
+    }
+};
+
