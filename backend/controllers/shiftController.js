@@ -24,7 +24,22 @@ exports.getShifts = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch shifts', error: error.message });
   }
 };
-feature/shiftManagement/UpdateShift
+
+// DELETE /api/shifts/:id
+exports.deleteShift = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deleted = await Shift.findByIdAndDelete(id);
+    if (!deleted) {
+      return res.status(404).json({ error: "Shift not found" });
+    }
+    res.status(200).json({ message: "Shift deleted successfully" });
+  } catch (error) {
+    console.error("Delete error:", error);
+    res.status(500).json({ error: "Failed to delete shift" });
+  }
+};
 
 exports.updateShift = async (req, res) => {
   const { id } = req.params;
