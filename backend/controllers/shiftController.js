@@ -25,6 +25,22 @@ exports.getShifts = async (req, res) => {
   }
 };
 
+// DELETE /api/shifts/:id
+exports.deleteShift = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deleted = await Shift.findByIdAndDelete(id);
+    if (!deleted) {
+      return res.status(404).json({ error: "Shift not found" });
+    }
+    res.status(200).json({ message: "Shift deleted successfully" });
+  } catch (error) {
+    console.error("Delete error:", error);
+    res.status(500).json({ error: "Failed to delete shift" });
+  }
+};
+
 exports.updateShift = async (req, res) => {
   const { id } = req.params;
   const { person, start, end } = req.body;
@@ -41,21 +57,5 @@ exports.updateShift = async (req, res) => {
   } catch (error) {
     console.error("Update error:", error);
     res.status(500).json({ message: 'Failed to update shift', error: error.message });
-  }
-};
-
-// DELETE /api/shifts/:id
-exports.deleteShift = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const deleted = await Shift.findByIdAndDelete(id);
-    if (!deleted) {
-      return res.status(404).json({ error: "Shift not found" });
-    }
-    res.status(200).json({ message: "Shift deleted successfully" });
-  } catch (error) {
-    console.error("Delete error:", error);
-    res.status(500).json({ error: "Failed to delete shift" });
   }
 };
