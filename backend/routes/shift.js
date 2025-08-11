@@ -4,5 +4,6 @@ const router = express.Router();
 const shiftController = require('../controllers/shiftController');
 
 router.get('/', shiftController.getShifts);
+router.delete('/:id', shiftController.deleteShift);
 
 module.exports = router;
