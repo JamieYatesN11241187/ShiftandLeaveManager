@@ -22,3 +22,13 @@ exports.createLeaveRequest = async (req, res) => {
         res.status(500).json({ message: 'Failed to create leave request.', error: error.message });
     }
 };
+
+// Get all leave requests
+exports.getLeaveRequests = async (req, res) => {
+    try {
+        const requests = await LeaveRequest.find();
+        res.json(requests);
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to fetch leave requests', error: error.message });
+    }
+};
