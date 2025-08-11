@@ -4,5 +4,6 @@ const router = express.Router();
 const shiftController = require('../controllers/shiftController');
 
 router.get('/', shiftController.getShifts);
+router.put('/:id', shiftController.updateShift);
 
 module.exports = router;
