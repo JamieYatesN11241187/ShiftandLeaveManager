@@ -5,5 +5,6 @@ const leaveController = require('../controllers/leaveController');
 const { protect } = require('../middleware/authMiddleware');
 
 router.post('/', protect, leaveController.createLeaveRequest);
+router.get('/', leaveController.getLeaveRequests);
 
 module.exports = router;
