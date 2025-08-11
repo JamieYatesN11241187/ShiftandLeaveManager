@@ -122,6 +122,7 @@ const Calendar = () => {
             // Only allow edit for certain roles
             if (user && ["manager"].includes(user.role)) {
                 await editShift(args.e);
+                await deleteShift(args.e);
             } else {
                 alert("You do not have permission to edit shifts.");
             }
