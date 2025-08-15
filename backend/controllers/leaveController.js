@@ -1,6 +1,7 @@
 const LeaveRequest = require('../models/LeaveRequests');
 //running this to test the workflow
 // Create Leave Request (non-managers only)
+// git commit -m "SCRUM-81 <message>"
 exports.createLeaveRequest = async (req, res) => {
     try {
         const person = req.user?.name;
