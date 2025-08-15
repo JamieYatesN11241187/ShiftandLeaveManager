@@ -1,27 +1,62 @@
+# Shift and Leave Manager
 
-**Assessment 1 (Total Marks **20**)**
-
-Assignment: **Software requirements analysis and design (**Full-Stack CRUD Application Development with DevOps Practices**)**
-
-
----
-
-**Objective**
-
-You have been provided with a starter project that includes user authentication using Node.js, React.js, and MongoDB. Your task is to extend this application by implementing CRUD (Create, Read, Update, Delete) operations of different featuresfor a real-world application of your choice, while following industry best practices such as: 
-
-* **Project Management with JIRA**
-* **Requirement Diagram**, **Block Definition Diagram (**BDD), Parametric Diagram using**SysML**
-* **Version Control using GitHub**
-* **CI/CD Integration for Automated Deployment**
+A full-stack CRUD application with user authentication, developed using **Node.js**, **React.js**, and **MongoDB**, deployed via **CI/CD** on AWS with **Nginx** and **PM2**.  
+Implements leave and shift management features, including request creation, update, approval/rejection, and review.
 
 ---
 
-**GitHub link for public repository: https://github.com/JamieYatesN11241187/ShiftandLeaveManager.git
+## Project Setup Instructions
 
-**Assessment Criteria:**
+### **1. Prerequisites**
+- Node.js v22+
+- Yarn package manager
+- MongoDB (local or cloud instance)
+- Git
+- AWS EC2 instance with Nginx & PM2 (for deployment)
 
-* Clarity and completeness of Jira board and SysML models.
-* Adherence to Git best practices and practical contributions.
-* Successful implementation, deploymentand CI/CD pipeline.
-* Problem-solving skills and the ability to go beyond basic requirements.
+### **2. Clone the repository**
+```bash
+git clone https://github.com/JamieYatesN11241187/ShiftandLeaveManager.git
+cd ShiftandLeaveManager
+```
+
+### **3. Backend Setup**
+```bash
+cd backend
+yarn install
+cp .env.example .env   # Update with your MongoDB URI, JWT_SECRET, and PORT
+yarn start              # or npm run start (for local testing)
+```
+
+### **4. Frontend Setup**
+```bash
+cd ../frontend
+yarn install
+yarn start              # Runs the frontend locally
+```
+
+### **5. Run Tests**
+```bash
+cd backend
+npm test
+```
+
+---
+
+## Public URL
+**http://54.252.2.18/** 
+---
+
+## Test Login Credentials
+Use the following project-specific test account to log in and access the dashboard:
+
+- **Username/Email:** `IFN636@gmail.com`  
+- **Password:** `IFN636`
+
+---
+
+## Technologies Used
+- **Frontend:** React.js, Axios, Yarn
+- **Backend:** Node.js, Express.js, MongoDB, Mongoose
+- **DevOps:** GitHub Actions (CI/CD), PM2, Nginx, AWS EC2
+- **Testing:** Mocha, Chai, Sinon
