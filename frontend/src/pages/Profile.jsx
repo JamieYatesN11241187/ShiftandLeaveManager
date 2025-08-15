@@ -1,25 +1,30 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import axiosInstance from '../axiosConfig';
+import { useAuth } from '../context/AuthContext'; // Access authentication context
+import axiosInstance from '../axiosConfig'; // Axios instance with base URL and config
 
 const Profile = () => {
-  const { user, setUser } = useAuth();
+  const { user, setUser } = useAuth(); // Get user and updater function from context
+
+  // Local state for form input values
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     role: '',
     address: '',
   });
-  const [loading, setLoading] = useState(false);
+
+  const [loading, setLoading] = useState(false); // Track loading state for async operations
 
   useEffect(() => {
-    // Fetch profile data from the backend
+    // Fetch current user profile from backend on component mount
     const fetchProfile = async () => {
       setLoading(true);
       try {
         const response = await axiosInstance.get('/api/auth/profile', {
-          headers: { Authorization: `Bearer ${user.token}` },
+          headers: { Authorization: `Bearer ${user.token}` }, // Pass token for authentication
         });
+
+        // Populate form with fetched profile data
         setFormData({
           name: response.data.name,
           email: response.data.email,
@@ -29,14 +34,14 @@ const Profile = () => {
       } catch (error) {
         alert('Failed to fetch profile. Please try again.');
       } finally {
-        setLoading(false);
+        setLoading(false); // End loading state
       }
     };
 
-    if (user) fetchProfile();
+    if (user) fetchProfile(); // Only fetch if user is authenticated
   }, [user]);
 
-
+  // Handle form submission to update profile
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -44,9 +49,12 @@ const Profile = () => {
       const response = await axiosInstance.put('/api/auth/profile', formData, {
         headers: { Authorization: `Bearer ${user.token}` },
       });
+
+      // Notify success with updated values
       alert(`Profile updated successfully!\n\nName: ${formData.name}\nEmail: ${formData.email}\nRole: ${formData.role}\nAddress: ${formData.address}`);
+
+      // If a new token is returned, update both local storage and context
       if (response.data.token) {
-        // Save new token and update user context
         localStorage.setItem('token', response.data.token);
         setUser({ ...user, role: formData.role, token: response.data.token });
       } else {
@@ -54,12 +62,13 @@ const Profile = () => {
       }
     } catch (error) {
       alert('Failed to update profile. Please try again.');
-      console.log(error); // Log the error for debugging
+      console.log(error); // Log error for debugging
     } finally {
-      setLoading(false);
+      setLoading(false); // End loading state
     }
   };
 
+  // Show loading text while data is being fetched or updated
   if (loading) {
     return <div className="text-center mt-20">Loading...</div>;
   }
@@ -68,6 +77,8 @@ const Profile = () => {
     <div className="max-w-md mx-auto mt-20">
       <form onSubmit={handleSubmit} className="bg-white p-6 shadow-md rounded">
         <h1 className="text-2xl font-bold mb-4 text-center">Your Profile</h1>
+
+        {/* Name input field */}
         <input
           type="text"
           placeholder="Name"
@@ -75,6 +86,8 @@ const Profile = () => {
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           className="w-full mb-4 p-2 border rounded"
         />
+
+        {/* Email input field */}
         <input
           type="email"
           placeholder="Email"
@@ -82,6 +95,8 @@ const Profile = () => {
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           className="w-full mb-4 p-2 border rounded"
         />
+
+        {/* Role input field (not editable in most cases, could be restricted) */}
         <input
           type="text"
           placeholder="role"
@@ -89,6 +104,8 @@ const Profile = () => {
           onChange={(e) => setFormData({ ...formData, role: e.target.value })}
           className="w-full mb-4 p-2 border rounded"
         />
+
+        {/* Address input field */}
         <input
           type="text"
           placeholder="Address"
@@ -96,6 +113,8 @@ const Profile = () => {
           onChange={(e) => setFormData({ ...formData, address: e.target.value })}
           className="w-full mb-4 p-2 border rounded"
         />
+
+        {/* Submit button */}
         <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded">
           {loading ? 'Updating...' : 'Update Profile'}
         </button>
