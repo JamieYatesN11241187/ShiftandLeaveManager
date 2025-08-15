@@ -10,6 +10,7 @@ router.get('/', shiftController.getShifts);
 router.post('/', shiftController.createShift);
 
 // Route to delete a shift by ID
+
 router.delete('/:id', shiftController.deleteShift);
 
 // Route to update a shift by ID

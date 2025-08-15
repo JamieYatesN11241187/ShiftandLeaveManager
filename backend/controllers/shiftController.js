@@ -30,7 +30,6 @@ exports.getShifts = async (req, res) => {
   }
 };
 
-// Update a shift by ID
 exports.updateShift = async (req, res) => {
   const { id } = req.params; // Extract shift ID from route parameters
   const { person, start, end } = req.body; // Extract updated data from request body

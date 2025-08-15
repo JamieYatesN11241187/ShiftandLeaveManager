@@ -4,6 +4,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
 import Roster from './pages/Roster';
+import LeaveRequests from './pages/LeaveRequests';
+
 
 function App() {
   return (
@@ -14,7 +16,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/roster" element={<Roster />} />
-
+        <Route path="/leave-requests" element={<LeaveRequests />} />
       </Routes>
     </Router>
   );
