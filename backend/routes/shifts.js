@@ -1,11 +1,19 @@
-// routes/events.js
 const express = require('express');
-const router = express.Router();
-const shiftController = require('../controllers/shiftController');
+const router = express.Router(); // Create a new router instance
 
+const shiftController = require('../controllers/shiftController'); // Import the shift controller functions
+
+// Route to get all shifts
 router.get('/', shiftController.getShifts);
-router.delete('/:id', shiftController.deleteShift);
-router.put('/:id', shiftController.updateShift);
+
+// Route to create a new shift
 router.post('/', shiftController.createShift);
 
-module.exports = router;
+// Route to delete a shift by ID
+
+router.delete('/:id', shiftController.deleteShift);
+
+// Route to update a shift by ID
+router.put('/:id', shiftController.updateShift);
+
+module.exports = router; // Export the router to be used in the main app

@@ -1,6 +1,5 @@
 const LeaveRequest = require('../models/LeaveRequests');
-//running this to test the workflow
-// Create Leave Request (non-managers only)
+
 // Endpoint to create a new leave request
 // Accessible by authenticated non-manager users
 exports.createLeaveRequest = async (req, res) => {
