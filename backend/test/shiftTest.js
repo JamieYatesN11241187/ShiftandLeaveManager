@@ -6,9 +6,10 @@ const { createShift, updateShift, deleteShift, getShifts } = require('../control
 const { expect } = chai;
 
 describe('CreateShift Function Test', () => {
-  afterEach(() => sinon.restore());
+  afterEach(() => sinon.restore()); // Restore all stubs/spies after each test
 
   it('should create a new shift successfully', async () => {
+    // Mock request body
     const req = {
       body: {
         person: "Alice Johnson",
@@ -17,19 +18,21 @@ describe('CreateShift Function Test', () => {
       },
     };
 
-    // Stub instance save() to resolve with "this"
+    // Stub Shift.prototype.save to simulate successful DB save
     const saveStub = sinon.stub(Shift.prototype, 'save').resolvesThis();
 
+    // Mock response object
     const res = {
       status: sinon.stub().returnsThis(),
       json: sinon.spy(),
     };
 
+    // Call controller
     await createShift(req, res);
 
+    // Assertions
     expect(saveStub.calledOnce).to.be.true;
     expect(res.status.calledWith(201)).to.be.true;
-    // controller returns the created doc
     expect(res.json.firstCall.args[0]).to.include({
       person: req.body.person,
       start: req.body.start,
@@ -38,6 +41,7 @@ describe('CreateShift Function Test', () => {
   });
 
   it('should return 500 if an error occurs', async () => {
+    // Simulate error during save
     sinon.stub(Shift.prototype, 'save').throws(new Error('DB Error'));
 
     const req = {
@@ -63,12 +67,13 @@ describe('CreateShift Function Test', () => {
   });
 });
 
-
 describe('Update Function Test', () => {
   afterEach(() => sinon.restore());
 
   it('should update shift successfully', async () => {
     const shiftId = new mongoose.Types.ObjectId();
+
+    // Mock an existing shift document with a stubbed save
     const existingShift = {
       _id: shiftId,
       person: "Alice Johnson",
@@ -77,6 +82,7 @@ describe('Update Function Test', () => {
       save: sinon.stub().resolvesThis(),
     };
 
+    // Stub findById to return mocked document
     const findByIdStub = sinon.stub(Shift, 'findById').resolves(existingShift);
 
     const req = {
@@ -95,16 +101,17 @@ describe('Update Function Test', () => {
 
     await updateShift(req, res);
 
+    // Assertions
     expect(findByIdStub.calledOnceWith(shiftId)).to.be.true;
     expect(existingShift.person).to.equal("New Person");
     expect(existingShift.start.toISOString()).to.equal(req.body.start.toISOString());
     expect(existingShift.end.toISOString()).to.equal(req.body.end.toISOString());
-    expect(res.status.called).to.be.false;
+    expect(res.status.called).to.be.false; // No error, so no status called
     expect(res.json.calledOnce).to.be.true;
   });
 
   it('should return 404 if shift is not found', async () => {
-    sinon.stub(Shift, 'findById').resolves(null);
+    sinon.stub(Shift, 'findById').resolves(null); // Simulate not found
 
     const req = { params: { id: new mongoose.Types.ObjectId() }, body: {} };
     const res = {
@@ -119,6 +126,7 @@ describe('Update Function Test', () => {
   });
 
   it('should return 500 on error', async () => {
+    // Simulate error in findById
     sinon.stub(Shift, 'findById').throws(new Error('DB Error'));
 
     const req = { params: { id: new mongoose.Types.ObjectId() }, body: {} };
@@ -137,14 +145,23 @@ describe('Update Function Test', () => {
   });
 });
 
-
 describe('GetShift Function Test', () => {
   afterEach(() => sinon.restore());
 
   it('should return all shifts', async () => {
     const shifts = [
-      { _id: new mongoose.Types.ObjectId(), person: "Test3 Johnson", start: new Date("2025-08-11T08:00:00Z"), end: new Date("2025-08-11T16:00:00Z") },
-      { _id: new mongoose.Types.ObjectId(), person: "Test4 Johnson", start: new Date("2025-08-11T08:00:00Z"), end: new Date("2025-08-11T16:00:00Z") },
+      {
+        _id: new mongoose.Types.ObjectId(),
+        person: "Test3 Johnson",
+        start: new Date("2025-08-11T08:00:00Z"),
+        end: new Date("2025-08-11T16:00:00Z"),
+      },
+      {
+        _id: new mongoose.Types.ObjectId(),
+        person: "Test4 Johnson",
+        start: new Date("2025-08-11T08:00:00Z"),
+        end: new Date("2025-08-11T16:00:00Z"),
+      },
     ];
 
     const findStub = sinon.stub(Shift, 'find').resolves(shifts);
@@ -157,9 +174,10 @@ describe('GetShift Function Test', () => {
 
     await getShifts(req, res);
 
-    expect(findStub.calledOnce).to.be.true; // no filter argument in controller
+    // Assertions
+    expect(findStub.calledOnce).to.be.true;
     expect(res.json.calledWith(shifts)).to.be.true;
-    expect(res.status.called).to.be.false;
+    expect(res.status.called).to.be.false; // No errors
   });
 
   it('should return 500 on error', async () => {
@@ -180,7 +198,6 @@ describe('GetShift Function Test', () => {
     })).to.be.true;
   });
 });
-
 
 describe('DeleteShift Function Test', () => {
   afterEach(() => sinon.restore());
@@ -207,7 +224,7 @@ describe('DeleteShift Function Test', () => {
     const id = new mongoose.Types.ObjectId().toString();
     const req = { params: { id } };
 
-    sinon.stub(Shift, 'findByIdAndDelete').resolves(null);
+    sinon.stub(Shift, 'findByIdAndDelete').resolves(null); // Simulate not found
 
     const res = {
       status: sinon.stub().returnsThis(),

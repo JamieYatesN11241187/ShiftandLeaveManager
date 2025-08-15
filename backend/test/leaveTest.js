@@ -1,4 +1,3 @@
-// test/leaveTest.js
 const chai = require('chai');
 const sinon = require('sinon');
 const mongoose = require('mongoose');
@@ -13,7 +12,7 @@ const {
 const { expect } = chai;
 
 describe('Leave Request Controller', () => {
-  afterEach(() => sinon.restore());
+  afterEach(() => sinon.restore()); // Reset stubs after each test
 
   describe('createLeaveRequest', () => {
     it('should create a leave request for an authenticated user', async () => {
@@ -25,6 +24,7 @@ describe('Leave Request Controller', () => {
         },
       };
 
+      // Stub the save method of the Mongoose model
       const saveStub = sinon.stub(LeaveRequest.prototype, 'save').resolvesThis();
 
       const res = {
@@ -47,7 +47,7 @@ describe('Leave Request Controller', () => {
     });
 
     it('should return 400 if user not authenticated', async () => {
-      const req = { }; // no user
+      const req = {}; // no user object
       const res = {
         status: sinon.stub().returnsThis(),
         json: sinon.spy(),
@@ -69,6 +69,7 @@ describe('Leave Request Controller', () => {
           end: new Date('2025-09-03T17:00:00Z'),
         },
       };
+
       const res = {
         status: sinon.stub().returnsThis(),
         json: sinon.spy(),
@@ -90,6 +91,7 @@ describe('Leave Request Controller', () => {
         { _id: new mongoose.Types.ObjectId(), person: 'A', status: 'pending' },
         { _id: new mongoose.Types.ObjectId(), person: 'B', status: 'approved' },
       ];
+
       const findStub = sinon.stub(LeaveRequest, 'find').resolves(requests);
 
       const req = {};
@@ -127,6 +129,7 @@ describe('Leave Request Controller', () => {
   describe('updateLeaveRequest', () => {
     it('manager can update status only', async () => {
       const id = new mongoose.Types.ObjectId().toString();
+
       const existing = {
         _id: id,
         person: 'Alice',
@@ -135,6 +138,7 @@ describe('Leave Request Controller', () => {
         status: 'pending',
         save: sinon.stub().resolvesThis(),
       };
+
       const findByIdStub = sinon.stub(LeaveRequest, 'findById').resolves(existing);
 
       const req = {
@@ -142,6 +146,7 @@ describe('Leave Request Controller', () => {
         user: { role: 'manager', name: 'Manager Mike' },
         body: { status: 'approved', person: 'SHOULD_NOT_APPLY' },
       };
+
       const res = {
         json: sinon.spy(),
         status: sinon.stub().returnsThis(),
@@ -151,7 +156,7 @@ describe('Leave Request Controller', () => {
 
       expect(findByIdStub.calledOnceWith(id)).to.be.true;
       expect(existing.status).to.equal('approved');
-      expect(existing.person).to.equal('Alice'); // unchanged
+      expect(existing.person).to.equal('Alice'); // Ensure person is not overwritten
       expect(existing.save.calledOnce).to.be.true;
       expect(res.status.called).to.be.false;
       expect(res.json.calledOnce).to.be.true;
@@ -159,6 +164,7 @@ describe('Leave Request Controller', () => {
 
     it('non-manager can update their own start/end (not status)', async () => {
       const id = new mongoose.Types.ObjectId().toString();
+
       const existing = {
         _id: id,
         person: 'Bob',
@@ -167,6 +173,7 @@ describe('Leave Request Controller', () => {
         status: 'pending',
         save: sinon.stub().resolvesThis(),
       };
+
       sinon.stub(LeaveRequest, 'findById').resolves(existing);
 
       const req = {
@@ -175,9 +182,10 @@ describe('Leave Request Controller', () => {
         body: {
           start: new Date('2025-10-07T09:00:00Z'),
           end: new Date('2025-10-08T17:00:00Z'),
-          status: 'approved', // should not be applied
+          status: 'approved', // Should not be applied
         },
       };
+
       const res = {
         json: sinon.spy(),
         status: sinon.stub().returnsThis(),
@@ -187,13 +195,14 @@ describe('Leave Request Controller', () => {
 
       expect(existing.start.toISOString()).to.equal(req.body.start.toISOString());
       expect(existing.end.toISOString()).to.equal(req.body.end.toISOString());
-      expect(existing.status).to.equal('pending'); // unchanged by non-manager
+      expect(existing.status).to.equal('pending'); // Status should remain unchanged
       expect(res.json.calledOnce).to.be.true;
       expect(res.status.called).to.be.false;
     });
 
     it('non-manager cannot update someone else’s request (403)', async () => {
       const id = new mongoose.Types.ObjectId().toString();
+
       const existing = {
         _id: id,
         person: 'Alice',
@@ -202,6 +211,7 @@ describe('Leave Request Controller', () => {
         status: 'pending',
         save: sinon.stub().resolvesThis(),
       };
+
       sinon.stub(LeaveRequest, 'findById').resolves(existing);
 
       const req = {
@@ -209,6 +219,7 @@ describe('Leave Request Controller', () => {
         user: { role: 'employee', name: 'Bob' },
         body: { start: new Date('2025-10-09T09:00:00Z') },
       };
+
       const res = {
         json: sinon.spy(),
         status: sinon.stub().returnsThis(),
@@ -257,7 +268,7 @@ describe('Leave Request Controller', () => {
 
   describe('deleteLeaveRequest', () => {
     it('returns 401 when no user on request', async () => {
-      const req = { params: { id: new mongoose.Types.ObjectId().toString() } }; // no user
+      const req = { params: { id: new mongoose.Types.ObjectId().toString() } }; // No user
       const res = {
         status: sinon.stub().returnsThis(),
         json: sinon.spy(),
