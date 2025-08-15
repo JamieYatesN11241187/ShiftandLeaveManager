@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axiosInstance from '../axiosConfig';
 
-
+// Modal overlay styling
 const overlayStyle = {
     position: 'fixed',
     top: 0,
@@ -17,6 +17,7 @@ const overlayStyle = {
     zIndex: 1000
 };
 
+// Modal container styling
 const modalStyle = {
     backgroundColor: 'white',
     padding: '2rem',
@@ -25,6 +26,7 @@ const modalStyle = {
     boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)'
 };
 
+// Input field styling
 const inputStyle = {
     width: '100%',
     padding: '8px',
@@ -34,12 +36,14 @@ const inputStyle = {
     border: '1px solid #ccc'
 };
 
+// Label styling
 const labelStyle = {
     display: 'block',
     fontWeight: 'bold',
     marginBottom: '0.5rem'
 };
 
+// Button styling
 const buttonStyle = {
     padding: '8px 16px',
     backgroundColor: '#4caf50',
@@ -49,63 +53,42 @@ const buttonStyle = {
     cursor: 'pointer'
 };
 
+// Layout styles
 const styles = {
-    wrap: {
-        display: "flex"
-    },
-    left: {
-        marginRight: "10px"
-    },
-    main: {
-        flexGrow: "1"
-    }
+    wrap: { display: "flex" },
+    left: { marginRight: "10px" },
+    main: { flexGrow: "1" }
 };
 
 const Calendar = () => {
+    // Convert local datetime string to UTC ISO format
     const toUtcISOString = (localDateTimeString) => {
         const localDate = new Date(localDateTimeString);
         const utcDate = new Date(localDate.getTime() - localDate.getTimezoneOffset() * 60000);
         return utcDate.toISOString();
     };
 
-    const { user, setUser } = useAuth(); // Access user token from context
-    const today = new Date()
-    const [calendar, setCalendar] = useState(null);
-    // const [shifts, setshifts] = useState([]);
-    const [startDate, setStartDate] = useState(today.toISOString().split("T")[0]);
-    const [formVisible, setFormVisible] = useState(false);
-    const [formData, setFormData] = useState({
-        person: '',
-        start: '',
-        end: ''
-    });
-    const [shifts, setShifts] = useState([]);
+    const { user, setUser } = useAuth(); // Get user and updater from context
+    const today = new Date();
 
-    const [editModalVisible, setEditModalVisible] = useState(false);
-    const [editFormData, setEditFormData] = useState({
-        id: '',
-        person: '',
-        start: '',
-        end: ''
-    });
+    const [calendar, setCalendar] = useState(null); // Reference to calendar control
+    const [startDate, setStartDate] = useState(today.toISOString().split("T")[0]); // Selected start date
+    const [formVisible, setFormVisible] = useState(false); // Show/hide creation modal
+    const [formData, setFormData] = useState({ person: '', start: '', end: '' }); // New shift form state
+    const [shifts, setShifts] = useState([]); // Array of shift events for calendar
 
+    const [editModalVisible, setEditModalVisible] = useState(false); // Show/hide edit modal
+    const [editFormData, setEditFormData] = useState({ id: '', person: '', start: '', end: '' }); // Edit shift form state
 
     useEffect(() => {
+        // Fetch user profile to prefill name and update role
         const fetchProfile = async () => {
             try {
                 const response = await axiosInstance.get('/api/auth/profile', {
                     headers: { Authorization: `Bearer ${user.token}` },
                 });
-                // Update formData as before
-                setFormData(prev => ({
-                    ...prev,
-                    person: response.data.name,
-                }));
-                // Update user context with latest role
-                setUser(prev => ({
-                    ...prev,
-                    role: response.data.role,
-                }));
+                setFormData(prev => ({ ...prev, person: response.data.name }));
+                setUser(prev => ({ ...prev, role: response.data.role }));
             } catch (error) {
                 alert('Failed to fetch profile. Please try again.');
             }
@@ -114,12 +97,14 @@ const Calendar = () => {
         if (user && setUser) fetchProfile();
     }, [user, setUser]);
 
+    // Calendar configuration
     const config = {
         viewType: "Week",
         durationBarVisible: false,
         timeRangeSelectedHandling: "Enabled",
+
+        // Triggered when an event is clicked
         onEventClick: async args => {
-            // Only allow edit for certain roles
             if (user && ["manager"].includes(user.role)) {
                 await editShift(args.e);
                 await deleteShift(args.e);
@@ -127,21 +112,19 @@ const Calendar = () => {
                 alert("You do not have permission to edit shifts.");
             }
         },
-        contextMenu: new DayPilot.Menu({
 
+        // Right-click context menu
+        contextMenu: new DayPilot.Menu({
             items: [
                 {
                     text: "Delete",
                     onClick: async args => {
                         const confirmed = window.confirm("Are you sure you want to delete this shift?");
                         if (!confirmed) return;
-
-                        await deleteShift(args.source.data.id); // call your new deleteShift function
+                        await deleteShift(args.source.data.id);
                     },
                 },
-                {
-                    text: "-"
-                },
+                { text: "-" },
                 {
                     text: "Edit...",
                     onClick: async args => {
@@ -150,6 +133,8 @@ const Calendar = () => {
                 }
             ]
         }),
+
+        // Custom rendering logic for event elements
         onBeforeEventRender: args => {
             args.data.areas = [
                 {
@@ -160,7 +145,7 @@ const Calendar = () => {
                     symbol: "icons/daypilot.svg#minichevron-down-2",
                     fontColor: "#fff",
                     toolTip: "Show context menu",
-                    action: "ContextMenu",
+                    action: "ContextMenu"
                 },
                 {
                     top: 3,
@@ -176,10 +161,10 @@ const Calendar = () => {
                     }
                 }
             ];
-
         }
     };
 
+    // Populate form with existing shift data for editing
     const editShift = async (e) => {
         if (!user || user.role !== "manager") {
             alert("You do not have permission to edit shifts.");
@@ -190,53 +175,49 @@ const Calendar = () => {
             id: e.data.id,
             person: e.data.text,
             start: e.data.start.slice(0, 16),
-            end: e.data.end.slice(0, 16),
+            end: e.data.end.slice(0, 16)
         });
 
         setEditModalVisible(true);
     };
 
-
-
+    // Delete shift by ID
     const deleteShift = async (shiftId) => {
         if (!user || user.role !== "manager") {
             alert("You do not have permission to delete shifts.");
             return;
         }
+
         try {
             await axiosInstance.delete(`/api/shifts/${shiftId}`, {
-                headers: { Authorization: `Bearer ${user.token}` },
+                headers: { Authorization: `Bearer ${user.token}` }
             });
-            fetchShifts(); // Refresh shifts after deletion
+            fetchShifts(); // Refresh shift list
         } catch (error) {
             console.error("Failed to delete shift:", error);
             alert('Failed to delete shift. Please try again.');
         }
     };
 
+    // Fetch all shifts from the backend and map to DayPilot format
     const fetchShifts = async () => {
         try {
             const response = await axiosInstance.get('/api/shifts');
             const data = response.data;
 
             if (!data || data.length === 0) {
-                console.log("No shifts found.");
                 setShifts([]);
                 return;
             }
 
-            const mappedShifts = data.map(ev => {
-                // Format to match DayPilot
-                return {
-                    id: ev._id,
-                    text: ev.person || "Untitled Shift",
-                    start: ev.start, // remove milliseconds + Z
-                    end: ev.end,
-                    backColor: "#6aa84f"
-                };
-            });
+            const mappedShifts = data.map(ev => ({
+                id: ev._id,
+                text: ev.person || "Untitled Shift",
+                start: ev.start,
+                end: ev.end,
+                backColor: "#6aa84f"
+            }));
 
-            console.log("Mapped Shifts:", mappedShifts); // Check what's being passed
             setShifts(mappedShifts);
         } catch (error) {
             console.error("Failed to fetch shifts:", error);
@@ -250,13 +231,14 @@ const Calendar = () => {
 
     return (
         <div>
+            {/* Edit Shift Modal */}
             {editModalVisible && (
                 <div style={overlayStyle}>
                     <div style={{ ...modalStyle, width: '350px' }}>
                         <h3 style={{ marginBottom: '1rem' }}>Edit Shift</h3>
 
-                        <label style={labelStyle}>
-                            Person:
+                        {/* Edit form fields */}
+                        <label style={labelStyle}>Person:
                             <input
                                 type="text"
                                 value={editFormData.person}
@@ -264,9 +246,7 @@ const Calendar = () => {
                                 style={inputStyle}
                             />
                         </label>
-
-                        <label style={labelStyle}>
-                            Start:
+                        <label style={labelStyle}>Start:
                             <input
                                 type="datetime-local"
                                 value={editFormData.start}
@@ -274,9 +254,7 @@ const Calendar = () => {
                                 style={inputStyle}
                             />
                         </label>
-
-                        <label style={labelStyle}>
-                            End:
+                        <label style={labelStyle}>End:
                             <input
                                 type="datetime-local"
                                 value={editFormData.end}
@@ -285,6 +263,7 @@ const Calendar = () => {
                             />
                         </label>
 
+                        {/* Action buttons */}
                         <div style={{ marginTop: '1rem' }}>
                             <button
                                 style={buttonStyle}
@@ -300,9 +279,7 @@ const Calendar = () => {
                                             start: toUtcISOString(editFormData.start),
                                             end: toUtcISOString(editFormData.end),
                                         }, {
-                                            headers: {
-                                                Authorization: `Bearer ${user.token}`
-                                            }
+                                            headers: { Authorization: `Bearer ${user.token}` }
                                         });
 
                                         setEditModalVisible(false);
@@ -326,13 +303,14 @@ const Calendar = () => {
                 </div>
             )}
 
+            {/* Create Shift Modal */}
             {formVisible && user && user.role === "manager" && (
                 <div style={overlayStyle}>
                     <div style={modalStyle}>
                         <h3 style={{ marginBottom: '1rem' }}>Create Shift</h3>
 
-                        <label style={labelStyle}>
-                            Person:
+                        {/* Form fields */}
+                        <label style={labelStyle}>Person:
                             <input
                                 type="text"
                                 value={formData.person}
@@ -340,9 +318,7 @@ const Calendar = () => {
                                 style={inputStyle}
                             />
                         </label>
-
-                        <label style={labelStyle}>
-                            Start:
+                        <label style={labelStyle}>Start:
                             <input
                                 type="datetime-local"
                                 value={formData.start}
@@ -350,9 +326,7 @@ const Calendar = () => {
                                 style={inputStyle}
                             />
                         </label>
-
-                        <label style={labelStyle}>
-                            End:
+                        <label style={labelStyle}>End:
                             <input
                                 type="datetime-local"
                                 value={formData.end}
@@ -361,12 +335,12 @@ const Calendar = () => {
                             />
                         </label>
 
+                        {/* Action buttons */}
                         <div style={{ marginTop: '1rem' }}>
                             <button style={buttonStyle} onClick={async () => {
-
                                 if (!formData.person || !formData.start || !formData.end) {
                                     alert("Please fill in all fields.");
-                                    return; // Stop here if validation fails
+                                    return;
                                 }
                                 try {
                                     await axiosInstance.post('/api/shifts',
@@ -376,9 +350,7 @@ const Calendar = () => {
                                             end: toUtcISOString(formData.end),
                                         },
                                         {
-                                            headers: {
-                                                Authorization: `Bearer ${user.token}`
-                                            }
+                                            headers: { Authorization: `Bearer ${user.token}` }
                                         }
                                     );
 
@@ -386,21 +358,27 @@ const Calendar = () => {
                                     setFormData({ person: '', start: '', end: '' });
                                     fetchShifts();
                                 } catch (error) {
-                                    alert('Failed to create Shift. In Roster returns.', console.error());
+                                    alert('Failed to create Shift. In Roster returns.');
+                                    console.error(error);
                                 }
                             }}>
                                 Create
                             </button>
-
-                            <button style={{ ...buttonStyle, marginLeft: '10px', backgroundColor: '#ccc' }}
-                                onClick={() => setFormVisible(false)}>Cancel</button>
+                            <button
+                                style={{ ...buttonStyle, marginLeft: '10px', backgroundColor: '#ccc' }}
+                                onClick={() => setFormVisible(false)}
+                            >
+                                Cancel
+                            </button>
                         </div>
                     </div>
                 </div>
             )}
 
+            {/* Calendar UI Layout */}
             <div style={styles.wrap}>
                 <div style={styles.left}>
+                    {/* Date selector (week-based) */}
                     <DayPilotNavigator
                         selectMode={"Week"}
                         showMonths={1}
@@ -410,6 +388,7 @@ const Calendar = () => {
                             setStartDate(args.day);
                         }}
                     />
+                    {/* Show Create Shift button for managers */}
                     {user && user.role === "manager" && (
                         <button
                             style={{ ...buttonStyle, marginBottom: "1rem" }}
@@ -419,7 +398,9 @@ const Calendar = () => {
                         </button>
                     )}
                 </div>
+
                 <div style={styles.main}>
+                    {/* DayPilot weekly calendar with shift events */}
                     {shifts.length > 0 ? (
                         <DayPilotCalendar
                             {...config}
