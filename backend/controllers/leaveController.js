@@ -1,23 +1,24 @@
 const LeaveRequest = require('../models/LeaveRequests');
-//running this to test the workflow
-// Create Leave Request (non-managers only)
-//git commit -m "SCRUM-81 <message>"
+
+// Endpoint to create a new leave request
+// Accessible by authenticated non-manager users
 exports.createLeaveRequest = async (req, res) => {
     try {
         const person = req.user?.name;
         if (!person) {
+            // If user is not authenticated
             return res.status(400).json({ message: 'User not authenticated' });
         }
-
+        // Create a new leave request instance
         const leaveRequest = new LeaveRequest({
             person,
             start: req.body.start,
             end: req.body.end,
-            status: 'pending'
+            status: 'pending' // Default status when a leave request is created
         });
 
-        await leaveRequest.save();
-        res.status(201).json(leaveRequest);
+        await leaveRequest.save(); // Save the new leave request to the database
+        res.status(201).json(leaveRequest); // Return the newly created leave request
     } catch (error) {
         console.error("Create error:", error);
         res.status(500).json({ message: 'Failed to create leave request.', error: error.message });
@@ -25,21 +26,24 @@ exports.createLeaveRequest = async (req, res) => {
 };
 
 // Get all leave requests
+// Endpoint to retrieve all leave requests (no role restriction shown here)
 exports.getLeaveRequests = async (req, res) => {
     try {
-        const requests = await LeaveRequest.find();
-        res.json(requests);
+        const requests = await LeaveRequest.find(); // Fetch all leave requests from the database
+        res.json(requests); // Return the list of leave requests
     } catch (error) {
         res.status(500).json({ message: 'Failed to fetch leave requests', error: error.message });
     }
 };
 
 // Update Leave Request
+// Endpoint to update an existing leave request
+// Managers can update status; non-managers can update their own start/end dates
 exports.updateLeaveRequest = async (req, res) => {
     try {
-        const leaveRequest = await LeaveRequest.findById(req.params.id);
+        const leaveRequest = await LeaveRequest.findById(req.params.id);// Find leave request by ID
         if (!leaveRequest) {
-            return res.status(404).json({ message: 'Request not found' });
+            return res.status(404).json({ message: 'Request not found' });// Handle not found
         }
 
         if (req.user.role === 'manager') {
@@ -50,6 +54,7 @@ exports.updateLeaveRequest = async (req, res) => {
             if (leaveRequest.person !== req.user.name) {
                 return res.status(403).json({ message: 'You can only update your own leave request.' });
             }
+            // Allow updates to start and end dates
             leaveRequest.start = req.body.start || leaveRequest.start;
             leaveRequest.end = req.body.end || leaveRequest.end;
         }
@@ -78,11 +83,11 @@ exports.deleteLeaveRequest = async (req, res) => {
     }
 
     try {
-        const deleted = await LeaveRequest.findByIdAndDelete(id);
+        const deleted = await LeaveRequest.findByIdAndDelete(id); // Attempt to delete the request by ID
         if (!deleted) {
-            return res.status(404).json({ error: "Leave request not found." });
+            return res.status(404).json({ error: "Leave request not found." }); // Handle not found
         }
-        res.status(200).json({ message: "Leave request deleted successfully." });
+        res.status(200).json({ message: "Leave request deleted successfully." }); // Confirm deletion
     } catch (error) {
         console.error("Delete error:", error);
         res.status(500).json({ error: "Failed to delete leave request." });

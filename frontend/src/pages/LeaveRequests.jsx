@@ -1,25 +1,27 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import axiosInstance from '../axiosConfig';
+import { useAuth } from '../context/AuthContext'; // Access authenticated user
+import axiosInstance from '../axiosConfig'; // Axios instance with base config
 
 const LeaveRequests = () => {
-    const { user } = useAuth();
-    const [requests, setRequests] = useState([]);
-    const [formVisible, setFormVisible] = useState(false);
-    const [formData, setFormData] = useState({ start: '', end: '', person: '', status: 'pending' });
+    const { user } = useAuth(); // Get authenticated user from context
+    const [requests, setRequests] = useState([]); // Store list of leave requests
+    const [formVisible, setFormVisible] = useState(false); // Toggle for modal form visibility
+    const [formData, setFormData] = useState({ start: '', end: '', person: '', status: 'pending' }); // Form input state
 
     useEffect(() => {
+        // Fetch all leave requests from the server
         const fetchRequests = async () => {
             try {
                 const response = await axiosInstance.get('/api/leave-requests', {
                     headers: { Authorization: `Bearer ${user.token}` }
                 });
-                setRequests(response.data);
+                setRequests(response.data); // Populate state with response
             } catch (error) {
-                setRequests([]);
+                setRequests([]); // Fallback in case of error
             }
         };
 
+        // Fetch user profile to populate "person" field in form
         const fetchUserProfile = async () => {
             try {
                 const response = await axiosInstance.get('/api/auth/profile', {
@@ -34,12 +36,14 @@ const LeaveRequests = () => {
             }
         };
 
+        // Run both fetch functions if token is present
         if (user?.token) {
             fetchRequests();
             fetchUserProfile();
         }
     }, [user]);
 
+    // Handle creation of a new leave request
     const handleCreateRequest = async () => {
         if (!formData.start || !formData.end) {
             alert("Please fill in all fields.");
@@ -53,16 +57,18 @@ const LeaveRequests = () => {
                     person: formData.person,
                     start: formData.start,
                     end: formData.end,
-                    status: 'pending' // Default status
+                    status: 'pending'
                 },
                 {
                     headers: { Authorization: `Bearer ${user.token}` }
                 }
             );
 
+            // Reset form and hide modal
             setFormVisible(false);
             setFormData({ start: '', end: '', person: formData.person, status: 'pending' });
 
+            // Refresh requests after creation
             const response = await axiosInstance.get('/api/leave-requests', {
                 headers: { Authorization: `Bearer ${user.token}` }
             });
@@ -73,6 +79,7 @@ const LeaveRequests = () => {
         }
     };
 
+    // Handle updating leave request status (for managers)
     const handleStatusUpdate = async (id, newStatus) => {
         try {
             await axiosInstance.put(
@@ -80,6 +87,7 @@ const LeaveRequests = () => {
                 { status: newStatus },
                 { headers: { Authorization: `Bearer ${user.token}` } }
             );
+            // Update local state after success
             setRequests(prev =>
                 prev.map(r => (r._id === id ? { ...r, status: newStatus } : r))
             );
@@ -88,11 +96,13 @@ const LeaveRequests = () => {
         }
     };
 
+    // Handle deletion of a leave request (for non-managers)
     const handleDelete = async (id) => {
         try {
             await axiosInstance.delete(`/api/leave-requests/${id}`, {
                 headers: { Authorization: `Bearer ${user.token}` }
             });
+            // Remove deleted request from state
             setRequests(prev => prev.filter(r => r._id !== id));
         } catch (error) {
             alert("Failed to delete request.");
@@ -103,7 +113,7 @@ const LeaveRequests = () => {
         <div className="max-w-3xl mx-auto mt-10">
             <h2 className="text-2xl font-bold mb-6 text-center">Leave Requests</h2>
 
-            {/* Show Create button only for non-managers */}
+            {/* Show create button only for non-managers */}
             {user.role !== 'manager' && (
                 <div className="mb-4 text-center">
                     <button
@@ -115,7 +125,7 @@ const LeaveRequests = () => {
                 </div>
             )}
 
-            {/* Table */}
+            {/* Table displaying all leave requests */}
             <table className="min-w-full bg-white shadow rounded">
                 <thead>
                     <tr>
@@ -137,6 +147,7 @@ const LeaveRequests = () => {
                                 <td className="py-2 px-4 border-b">{req.person}</td>
                                 <td className="py-2 px-4 border-b">{req.start} - {req.end}</td>
                                 <td className="py-2 px-4 border-b">
+                                    {/* Colored status badge */}
                                     <span className={
                                         req.status === 'approved'
                                             ? 'bg-green-100 text-green-800 px-2 py-1 rounded text-xs'
@@ -147,6 +158,7 @@ const LeaveRequests = () => {
                                         {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
                                     </span>
                                 </td>
+                                {/* Delete action for non-managers */}
                                 {user.role !== 'manager' && (
                                     <td className="py-2 px-4 border-b">
                                         <button
@@ -157,6 +169,7 @@ const LeaveRequests = () => {
                                         </button>
                                     </td>
                                 )}
+                                {/* Status update actions for managers */}
                                 {user.role === 'manager' && (
                                     <td className="py-2 px-4 border-b">
                                         <button
@@ -179,7 +192,7 @@ const LeaveRequests = () => {
                 </tbody>
             </table>
 
-            {/* Modal Form for Non-Managers */}
+            {/* Modal form for creating leave requests (non-managers only) */}
             {formVisible && user.role !== 'manager' && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
                     <div className="bg-white p-6 rounded shadow-md w-96">
